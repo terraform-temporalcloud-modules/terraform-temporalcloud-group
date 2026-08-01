@@ -78,9 +78,23 @@ run "downgrade_namespace_access" {
     ]
   }
 
+  // Compared against the ID the create block returned: changing a permission
+  // must update the access in place rather than replace the group underneath it.
+  assert {
+    condition     = output.group_id == run.create_group_with_namespace_access.group_id
+    error_message = "the group was replaced rather than having its namespace access updated"
+  }
+
   assert {
     condition     = length(output.group_namespace_accesses) == 1
     error_message = "expected the namespace access set to be replaced, not appended to"
+  }
+
+  // The set must still point at the same namespace, not have been swapped for a
+  // different one alongside the permission change.
+  assert {
+    condition     = tolist(output.group_namespace_accesses)[0].namespace_id == run.setup.namespace_id
+    error_message = "the namespace access stopped pointing at the test namespace"
   }
 
   assert {
