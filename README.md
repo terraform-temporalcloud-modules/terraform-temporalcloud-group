@@ -64,7 +64,7 @@ to point at.
 ```hcl
 module "group" {
   source  = "terraform-temporalcloud-modules/group/temporalcloud"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   name = "platform-engineering"
 
@@ -81,7 +81,7 @@ namespace access map on every apply, so it has to list every namespace the group
 ```hcl
 module "group" {
   source  = "terraform-temporalcloud-modules/group/temporalcloud"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   name = "support"
 
@@ -115,7 +115,7 @@ data "temporalcloud_users" "all" {}
 
 module "group" {
   source  = "terraform-temporalcloud-modules/group/temporalcloud"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   name = "platform-engineering"
 
@@ -155,7 +155,7 @@ data "temporalcloud_scim_group" "contractors" {
 
 module "contractor_access" {
   source  = "terraform-temporalcloud-modules/group/temporalcloud"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   create_group = false
   group_id     = data.temporalcloud_scim_group.contractors.id
@@ -218,7 +218,7 @@ anywhere a `for_each` on the module block is awkward:
 ```hcl
 module "groups" {
   source  = "terraform-temporalcloud-modules/group/temporalcloud//wrappers"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   defaults = {
     create_group_access = true

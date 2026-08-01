@@ -28,7 +28,7 @@ data "temporalcloud_scim_group" "this" {
 
 module "group_access" {
   source  = "terraform-temporalcloud-modules/group/temporalcloud"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   # The group exists already: adopt it rather than creating a second one with the
   # same name. `name` is required by the module because the provider requires it

@@ -62,7 +62,7 @@ need it; that removes the permissions this configuration granted, and leaves the
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_group_access"></a> [group\_access](#module\_group\_access) | terraform-temporalcloud-modules/group/temporalcloud | ~> 1.0 |
+| <a name="module_group_access"></a> [group\_access](#module\_group\_access) | terraform-temporalcloud-modules/group/temporalcloud | ~> 2.0 |
 
 ## Resources
 

@@ -57,7 +57,7 @@ the resource at all.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_group"></a> [group](#module\_group) | terraform-temporalcloud-modules/group/temporalcloud | ~> 1.0 |
+| <a name="module_group"></a> [group](#module\_group) | terraform-temporalcloud-modules/group/temporalcloud | ~> 2.0 |
 
 ## Resources
 
