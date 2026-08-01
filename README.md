@@ -6,12 +6,6 @@
 Terraform module which creates a [Temporal Cloud](https://temporal.io/cloud) user group, together with
 its account and namespace permissions and its membership.
 
-Both badges report the state of `main`. **CI** covers formatting, linting,
-documentation and `terraform validate`, and runs on every pull request and again
-after merge. **Apply Tests** creates and destroys real groups against a live
-Temporal Cloud account, weekly and on demand — the only check that proves the API
-accepts what this module sends.
-
 ## When to use this module
 
 **This is the module that grants access.** Whatever else your account uses, something has to say which
