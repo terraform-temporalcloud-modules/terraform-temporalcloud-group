@@ -12,6 +12,41 @@ after merge. **Apply Tests** creates and destroys real groups against a live
 Temporal Cloud account, weekly and on demand — the only check that proves the API
 accepts what this module sends.
 
+## When to use this module
+
+**This is the module that grants access.** Whatever else your account uses, something has to say which
+namespaces a group can reach and at what level, and that is what lives here.
+
+If your account has SAML and SCIM, this is the module you want — not
+[`user`](https://github.com/terraform-temporalcloud-modules/terraform-temporalcloud-user). Those two
+features cover authentication and provisioning, and stop short of permissions:
+
+| Concern | Owned by |
+| --- | --- |
+| Authentication — signing in | [SAML SSO](https://docs.temporal.io/cloud/saml) |
+| Which people exist, and their group membership | [SCIM](https://docs.temporal.io/cloud/scim), from your identity provider |
+| **What a group is allowed to do** | **this module** |
+| Machine access for workers and CI | [`service-account`](https://github.com/terraform-temporalcloud-modules/terraform-temporalcloud-service-account) — never a group |
+
+Temporal Cloud's SCIM documentation is explicit that roles are assigned to a group *after* it syncs.
+So SCIM delivers a group with the right people in it and stops; `account_access` and
+`namespace_accesses` remain yours to set, and granting them to groups rather than to individuals is
+what makes a synced user's access follow from their membership.
+
+Two ways to use it, depending on where the group comes from:
+
+- **The group is provisioned by SCIM, or otherwise already exists.** Set `create_group = false` and pass
+  `group_id`, enable `create_group_access`, and leave `create_group_members` off so the identity
+  provider stays the only writer of membership. See
+  [Groups provisioned by SCIM](#groups-provisioned-by-scim).
+- **You own the group outright.** Let the module create it and manage membership here too. Appropriate
+  when there is no SCIM integration — both SAML and SCIM are paid features — or for a group that has no
+  equivalent in the directory.
+
+Because `temporalcloud_group_access` owns a group's **entire** access map rather than individual
+entries, exactly one configuration may manage a given group's access. Two module calls pointing at the
+same `group_id` will overwrite each other on every apply.
+
 ## Requirements
 
 The `temporalcloud` provider authenticates with an API key, read from the `TEMPORAL_CLOUD_API_KEY`

@@ -20,6 +20,19 @@ locals {
 ################################################################################
 # Group
 #
+# This module is the one that grants access, which is the part SAML and SCIM do
+# not cover: SAML handles signing in, SCIM provisions people and their group
+# memberships, and roles are assigned to a group afterwards. On an account with
+# SCIM, prefer granting access to groups here over granting it to individuals
+# through the `user` module.
+#
+# Where the group comes from decides how to call it. A SCIM-provisioned or
+# otherwise pre-existing group is adopted with `create_group = false` plus
+# `group_id`, leaving `create_group_members` off so the identity provider remains
+# the only writer of membership. Without SCIM, let the module create the group and
+# manage membership here as well. Workers and CI use a service account and an API
+# key, never a group. README.md sets out the full split.
+#
 # `timeouts` is the only true block in this provider, hence the dynamic block.
 ################################################################################
 
