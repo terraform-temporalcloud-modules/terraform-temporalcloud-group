@@ -1,8 +1,9 @@
 # Generates a unique group name per test run.
 #
-# Temporal Cloud group names must be unique within an account, so a fixed name
-# would make a second run — or a concurrent one — fail on a name already in use,
-# and would collide with any group a human left behind after a failed run.
+# A fresh name per run keeps concurrent runs from touching each other's groups,
+# and keeps a leftover from an interrupted run distinguishable from the group the
+# current run created — which matters because no data source enumerates groups, so
+# leftovers are only ever found by name in the Temporal Cloud UI.
 #
 # Deliberately contacts nothing. This fixture is what the core lifecycle test
 # depends on, and a failed `run` block makes every later one *skip*, so anything

@@ -6,9 +6,10 @@ provider "temporalcloud" {
 # A group that already exists, provisioned by SCIM
 #
 # When SCIM is enabled, the identity provider creates the group in Temporal Cloud
-# and keeps its membership in sync. Terraform must not create or own either of
-# those, or the two systems fight: the IdP re-adds members Terraform removed, and
-# each apply shows a diff that never settles.
+# and keeps its membership in sync. Temporal Cloud assigns both to the
+# integration: a SCIM group cannot be created or deleted any other way, and its
+# membership is managed through it. Terraform therefore adopts the group by ID and
+# leaves its members alone.
 #
 # The data source resolves the group's Temporal Cloud ID from the ID it carries in
 # the identity provider.
@@ -21,8 +22,8 @@ data "temporalcloud_scim_group" "this" {
 ################################################################################
 # Terraform owns the group's permissions, and nothing else
 #
-# Roles and namespace permissions are not part of the SCIM schema, so they are
-# the one part of a SCIM group that has to be assigned here.
+# Roles and namespace permissions are assigned in Temporal Cloud once the group
+# has synced, so they are the one part of a SCIM group that has to be set here.
 ################################################################################
 
 module "group_access" {

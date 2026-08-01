@@ -102,18 +102,21 @@ module "group" {
 ## Groups provisioned by SCIM
 
 If your account uses SCIM, the identity provider — Entra ID, Okta and so on — creates groups in
-Temporal Cloud and keeps their membership in sync. **Terraform must not own either of those**, or the
-two systems fight each other:
+Temporal Cloud and keeps their membership in sync. Temporal Cloud
+[assigns both to the integration](https://docs.temporal.io/cloud/manage-access/user-groups): a SCIM
+group cannot be created or deleted except through it, and its membership is managed through it.
+**Terraform must not own either.**
 
-- Creating a `temporalcloud_group` with the same name as a SCIM group produces a *second*, unrelated
-  group. Names are not identities here.
-- Managing membership from both sides produces a plan that never settles: the identity provider re-adds
-  whoever Terraform removed, and the next apply removes them again.
+- `temporalcloud_group` always creates a new group; it cannot adopt an existing one. Since a SCIM group
+  cannot be created any other way, a SCIM group reaches this module through `group_id` with
+  `create_group = false`.
+- Leave `create_group_members` off. `temporalcloud_group_members` replaces a group's whole member list
+  on every apply, and that list belongs to the identity provider.
 
-Roles and namespace permissions are **not** part of the SCIM schema, so they are the part of a SCIM
-group Terraform should own. Set `create_group = false`, resolve the group's Temporal Cloud ID from its
-identity provider ID with the `temporalcloud_scim_group` data source, and leave
-`create_group_members` off:
+Roles and namespace permissions are assigned in Temporal Cloud once a group has synced, rather than
+carried across from the identity provider, so they are the part of a SCIM group Terraform should own.
+Set `create_group = false`, resolve the group's Temporal Cloud ID from its identity provider ID with
+the `temporalcloud_scim_group` data source, and leave `create_group_members` off:
 
 ```hcl
 data "temporalcloud_scim_group" "contractors" {
@@ -155,8 +158,8 @@ Provider and Temporal Cloud behaviours worth knowing before you plan:
   `read`. `write` is not an account role, `developer` is not a namespace permission, and both are
   matched case-insensitively.
 - **`owner` and `admin` cannot hold explicit namespace permissions.** Those roles already reach every
-  namespace, so combining them with `namespace_accesses` is rejected at apply. Pair `namespace_accesses`
-  with `developer`, `read` or `none`.
+  namespace, so combining them with `namespace_accesses` is rejected — `namespace_accesses must be
+  empty when account_access is admin`. Pair `namespace_accesses` with `developer`, `read` or `none`.
 - **`owner` can only be adopted by import.** It cannot be created, updated or deleted without Temporal
   support.
 - **Both child resources replace, they do not merge.** `namespace_accesses` owns the group's entire

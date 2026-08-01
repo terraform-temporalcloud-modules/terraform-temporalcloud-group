@@ -11,9 +11,12 @@ This is the split that matters when SCIM is enabled:
 | The group's existence and name | The group's account-level role |
 | The group's membership | The group's per-namespace permissions |
 
-Creating a `temporalcloud_group` with the same name as a SCIM group produces a *second*, unrelated
-group. Managing membership from both sides produces a diff that never settles: the identity provider
-re-adds whoever Terraform removed, and the next plan removes them again.
+Temporal Cloud
+[assigns the first column to the integration](https://docs.temporal.io/cloud/manage-access/user-groups):
+a SCIM group cannot be created or deleted except through it, and its membership is managed through it.
+`temporalcloud_group` always creates a new group rather than adopting one, and
+`temporalcloud_group_members` replaces a group's whole member list — so this example uses neither, and
+gives the module the group's ID instead.
 
 ## Usage
 

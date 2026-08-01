@@ -12,8 +12,8 @@ locals {
 
   create_group_access = var.create_group_access && local.has_group
 
-  # `users` is required by the resource and empty sets are rejected, so an empty
-  # list means no membership resource rather than a group with no members.
+  # `users` is required by the resource, so an empty list means no membership
+  # resource rather than a group with no members.
   create_group_members = var.create_group_members && local.has_group && length(var.users) > 0
 }
 

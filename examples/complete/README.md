@@ -36,7 +36,8 @@ no email is delivered. Inviting someone who is not yet in the account is what `t
 does, and that resource belongs to a different module in this family.
 
 With `member_emails` left empty, the module creates the group and its access but no membership
-resource, because an empty user set is rejected by the API.
+resource: `temporalcloud_group_members` requires `users`, so "no members" is expressed by not creating
+the resource at all.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

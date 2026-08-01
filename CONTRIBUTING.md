@@ -79,25 +79,32 @@ It offers no way to skip that file, so restoring a correct one leaves the gate p
 did: it fails if a root variable is not passed through `wrappers/main.tf`. When you add a variable to
 the root module, add the matching line to the wrapper in the same change.
 
-## API behaviours to guard against
+## Behaviours to guard against
 
-Each of these passes a plain `terraform validate` and fails only on apply. Some are caught earlier by a
-variable validation, noted where that is the case; the rest are the reason the apply layer exists.
+Where each is caught differs, and that determines whether a test can see it. A provider schema
+validator runs during `terraform validate`, but only against values the config already knows: anything
+arriving through a module input is unknown at that point, so through this module those checks surface
+later, at plan or apply. The module's own `variable` validations have no such limitation.
 
 1. **`temporalcloud_group_access.id` is an input, not a computed address.** The provider requires it
    and expects the ID of the group the access applies to. It reads like a Terraform resource ID and is
-   not one.
+   not one. Nothing catches a wrong value; it simply edits the wrong group.
 2. **The account role and namespace permissions are separate vocabularies.** `account_access` takes
    `owner`, `admin`, `developer`, `read` or `none`; `namespace_accesses[*].permission` takes `admin`,
    `write` or `read`. `write` is not a valid account role and `developer` is not a valid namespace
-   permission. Both are matched case-insensitively.
+   permission. Both are matched case-insensitively. Note that `account_access` on `temporalcloud_user`
+   accepts a *different* set — it adds `financeadmin` and `metricsread` and drops `none` — so do not
+   share a validation between the two. Caught by this module's variable validations.
 3. **`owner` and `admin` cannot hold explicit namespace permissions.** Those roles already reach every
-   namespace, and combining them with `namespace_accesses` is rejected. Terraform cannot catch this at
-   plan time: cross-variable validation needs Terraform 1.9 and this module's floor is 1.5.7.
-4. **Empty sets are rejected**, for both `account_access_custom_roles` and `namespace_accesses`. The
-   variables validate this at plan time and the module omits the attribute rather than sending `[]`.
-5. **`owner` is import-only.** It cannot be created, updated or deleted without Temporal support, so it
-   is accepted by the module's validation but is not something an apply can set.
+   namespace, and the provider rejects the combination with `namespace_accesses must be empty when
+   account_access is admin`. The module does not duplicate the check: a variable validation would have
+   to read two variables at once, which needs Terraform 1.9 and this module's floor is 1.5.7.
+4. **Empty sets are rejected**, for both `account_access_custom_roles` and `namespace_accesses`. Both
+   the provider and this module's variable validations reject `[]`; the module omits the attribute
+   instead. `users` differs — nothing rejects an empty set, but the resource requires the attribute, so
+   the module creates no membership resource at all.
+5. **`owner` is import-only.** It cannot be created, updated or deleted without Temporal support. The
+   provider accepts it in the config, so this one really does reach the API before failing.
 
 When writing assertions, note that outputs wrapped in `try(x, [])` evaluate to a *tuple*, so
 `output.group_namespace_accesses == tolist([])` is false even against an empty result. Compare with
@@ -152,7 +159,7 @@ left behind.
 ## Pull requests
 
 Titles must be [conventional commits](https://www.conventionalcommits.org/) — `feat:`, `fix:`, `docs:`,
-`ci:`, `chore:` — with a capitalised subject. Squash-merge makes the title the commit message, and
+`ci:`, `chore:`, `test:` or `refactor:` — with a capitalised subject. Squash-merge makes the title the commit message, and
 semantic-release derives the next version from it, so an invalid title silently breaks versioning. A
 workflow enforces this.
 
