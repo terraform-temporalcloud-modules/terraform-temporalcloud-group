@@ -10,6 +10,11 @@ run "creates_nothing" {
   variables {
     create_group = false
 
+    // Supplied because `name` has no default — the provider marks it required on
+    // temporalcloud_group. No group is created here, so the empty name never
+    // reaches the API.
+    name = ""
+
     // Both feature gates on, with no group to attach to. Nothing must be created
     // and nothing must error: the resources are gated on a group existing, not
     // just on their own flag.

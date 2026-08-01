@@ -31,8 +31,11 @@ module "group_access" {
   version = "~> 1.0"
 
   # The group exists already: adopt it rather than creating a second one with the
-  # same name.
+  # same name. `name` is required by the module because the provider requires it
+  # when a group *is* created; here it is empty, and the SCIM-provisioned group
+  # keeps whatever name the identity provider gave it.
   create_group = false
+  name         = ""
   group_id     = data.temporalcloud_scim_group.this.id
 
   create_group_access = true

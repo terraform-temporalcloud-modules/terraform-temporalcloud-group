@@ -30,8 +30,8 @@ what makes a synced user's access follow from their membership.
 Two ways to use it, depending on where the group comes from:
 
 - **The group is provisioned by SCIM, or otherwise already exists.** Set `create_group = false` and pass
-  `group_id`, enable `create_group_access`, and leave `create_group_members` off so the identity
-  provider stays the only writer of membership. See
+  `group_id` plus an empty `name`, enable `create_group_access`, and leave `create_group_members` off so
+  the identity provider stays the only writer of membership. See
   [Groups provisioned by SCIM](#groups-provisioned-by-scim).
 - **You own the group outright.** Let the module create it and manage membership here too. Appropriate
   when there is no SCIM integration — both SAML and SCIM are paid features — or for a group that has no
@@ -160,6 +160,9 @@ module "contractor_access" {
   create_group = false
   group_id     = data.temporalcloud_scim_group.contractors.id
 
+  # Required by Terraform, and unused here — the SCIM group keeps its own name.
+  name = ""
+
   create_group_access = true
   account_access      = "none"
 
@@ -231,10 +234,9 @@ module "groups" {
 
 ## Which inputs are required
 
-Every input carries a Terraform default, so the generated **Inputs** table below reports
-`Required: no` for all of them. That is what lets `create_group = false` hand the module an existing
-group instead of creating one: a module with switchable parts cannot demand a value for every input.
-What is genuinely required follows the three gates, and these tables are the record of it.
+`name` is required outright — it carries no default, because `temporalcloud_group` requires it — and
+the generated **Inputs** table below says so. Everything else that is required is required only
+behind one of the three gates, which the table cannot express.
 
 Where a rule is caught differs, and the tables say so:
 
@@ -247,17 +249,15 @@ Where a rule is caught differs, and the tables say so:
 - **nothing** — no resource and no error. Two inputs behave this way when omitted; they are the ones
   worth reading twice.
 
-### The group itself
+### `name` and `group_id`
 
-Exactly one of these is required, and which one depends on `create_group`:
+Terraform demands a value for `name` whether or not a group is created, but it is only *meaningful*
+when one is. Which of the two matters follows `create_group`:
 
-| Input | Required when | Omitting it |
+| `create_group` | `name` | `group_id` |
 | --- | --- | --- |
-| `name` | `create_group = true` (the default) | The group is sent with an empty name. Nothing before **apply** objects. |
-| `group_id` | `create_group = false` | **Nothing** happens. With no group to attach to, `create_group_access` and `create_group_members` both produce no resource, no error, and an empty `group_id` output. |
-
-`group_id` is ignored when `create_group = true` — access and membership always attach to the group
-the module created.
+| `true` (the default) | The name of the new group. An empty string is sent as an empty name and nothing before **apply** objects. | Ignored — access and membership always attach to the group the module created. |
+| `false` | Unused: the adopted group keeps its own name. Pass `""`. | Required. Leave it empty and **nothing** happens — with no group to attach to, `create_group_access` and `create_group_members` both produce no resource, no error, and an empty `group_id` output. |
 
 ### With `create_group_access = true`
 
@@ -279,13 +279,11 @@ the module created.
 | `[]` for `namespace_accesses` or `account_access_custom_roles` | validate | `Empty … sets are not accepted by the provider. Omit the variable instead.` |
 | A role outside `owner`, `admin`, `developer`, `read`, `none`, or a namespace permission outside `admin`, `write`, `read` | validate | `Account access must be one of: …` / `Namespace access permission must be one of: …` |
 
-### Optional
+### Inside `namespace_accesses`
 
-- **Access refinement** — `namespace_accesses`, `account_access_custom_roles`. Without them the group
-  reaches exactly what its `account_access` role reaches, and nothing more.
-- **Timeouts** — `timeouts`, `members_timeouts`. The provider's own create and delete timeouts apply.
-- **Gates** — `create_group` (on by default), `create_group_access` and `create_group_members` (both
-  off). With all three off the module creates nothing.
+Both keys of every entry are required. `namespace_id` and `permission` are required in the provider
+schema and in this module's object type, which the generated table cannot show: it lists the
+variable, not the keys inside it.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -319,12 +317,12 @@ No modules.
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_account_access"></a> [account\_access](#input\_account\_access) | The group's role on the account: `owner`, `admin`, `developer`, `read` or `none`, matched case-insensitively. Required when `create_group_access` is `true` — there is no account role the provider will infer, and the empty default is rejected at plan. Use `none` for a group whose permissions come entirely from `namespace_accesses`. `owner` can only be adopted by import — it cannot be created, updated or deleted without Temporal support | `string` | `""` | no |
 | <a name="input_account_access_custom_roles"></a> [account\_access\_custom\_roles](#input\_account\_access\_custom\_roles) | IDs of custom roles granted at account level, in addition to the built-in role in `account_access`. Optional; the group holds only the role in `account_access` when unset. Omit rather than passing an empty set | `set(string)` | `null` | no |
-| <a name="input_create_group"></a> [create\_group](#input\_create\_group) | Controls if the group should be created. Left `true`, `name` is required. Set to `false` and supply `group_id` to manage the access and membership of a group that already exists, such as one provisioned by SCIM | `bool` | `true` | no |
+| <a name="input_create_group"></a> [create\_group](#input\_create\_group) | Controls if the group should be created. Set to `false` and supply `group_id` to manage the access and membership of a group that already exists, such as one provisioned by SCIM. `name` is required by Terraform either way, so pass `""` for it when adopting an existing group | `bool` | `true` | no |
 | <a name="input_create_group_access"></a> [create\_group\_access](#input\_create\_group\_access) | Controls if the group's access should be managed. Setting it to `true` makes `account_access` required. Requires either `create_group = true` or `group_id` set to an existing group; with neither, no access resource is created | `bool` | `false` | no |
 | <a name="input_create_group_members"></a> [create\_group\_members](#input\_create\_group\_members) | Controls if the group's membership should be managed. Setting it to `true` makes a non-empty `users` required. Requires either `create_group = true` or `group_id` set to an existing group; with neither, no membership resource is created. Leave `false` for SCIM-provisioned groups, whose membership is owned by the identity provider | `bool` | `false` | no |
 | <a name="input_group_id"></a> [group\_id](#input\_group\_id) | The ID of an existing group to attach access and membership to. Required when `create_group` is `false`, and ignored otherwise. Leaving it empty with `create_group = false` leaves nothing to attach to, so the module creates no resources at all and reports no error. For groups created outside Terraform — a SCIM-provisioned group, for example, whose ID comes from the `temporalcloud_scim_group` data source | `string` | `""` | no |
 | <a name="input_members_timeouts"></a> [members\_timeouts](#input\_members\_timeouts) | Create and delete timeouts for the group membership, as duration strings such as `30s` or `2h45m`. Optional; the provider's own defaults apply to whichever is unset | <pre>object({<br/>    create = optional(string)<br/>    delete = optional(string)<br/>  })</pre> | `{}` | no |
-| <a name="input_name"></a> [name](#input\_name) | The name of the group. Required when `create_group` is `true`; the empty default is sent as an empty name and nothing rejects it before apply. Ignored when `create_group` is `false` | `string` | `""` | no |
+| <a name="input_name"></a> [name](#input\_name) | The name of the group to create. Unused when `create_group` is `false`, where the adopted group keeps the name it already has — pass `""` there, since Terraform requires a value for it regardless | `string` | n/a | yes |
 | <a name="input_namespace_accesses"></a> [namespace\_accesses](#input\_namespace\_accesses) | Per-namespace permissions for the group, as a set of `namespace_id` and `permission` pairs. `permission` is `admin`, `write` or `read`, matched case-insensitively. Optional; without it the group reaches namespaces only through its `account_access` role. This replaces the group's entire namespace access map, so it must list every namespace the group can reach. Leave unset for groups whose `account_access` is `owner` or `admin` — those roles already reach every namespace and explicit permissions are rejected. Omit rather than passing an empty set | <pre>set(object({<br/>    namespace_id = string<br/>    permission   = string<br/>  }))</pre> | `null` | no |
 | <a name="input_timeouts"></a> [timeouts](#input\_timeouts) | Create and delete timeouts for the group, as duration strings such as `30s` or `2h45m`. Optional; the provider's own defaults apply to whichever is unset | <pre>object({<br/>    create = optional(string)<br/>    delete = optional(string)<br/>  })</pre> | `{}` | no |
 | <a name="input_users"></a> [users](#input\_users) | IDs of the users that make up the group, as returned by the `temporalcloud_users` data source or the `id` of a `temporalcloud_user` resource. Required, and non-empty, when `create_group_members` is `true`: the provider requires the attribute, so rather than send an empty membership the module creates no membership resource at all and reports no error. This replaces the group's entire membership, so users added outside Terraform are removed on the next apply | `set(string)` | `[]` | no |

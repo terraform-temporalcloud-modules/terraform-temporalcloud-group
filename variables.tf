@@ -1,5 +1,5 @@
 variable "create_group" {
-  description = "Controls if the group should be created. Left `true`, `name` is required. Set to `false` and supply `group_id` to manage the access and membership of a group that already exists, such as one provisioned by SCIM"
+  description = "Controls if the group should be created. Set to `false` and supply `group_id` to manage the access and membership of a group that already exists, such as one provisioned by SCIM. `name` is required by Terraform either way, so pass `\"\"` for it when adopting an existing group"
   type        = bool
   default     = true
 }
@@ -9,9 +9,8 @@ variable "create_group" {
 ################################################################################
 
 variable "name" {
-  description = "The name of the group. Required when `create_group` is `true`; the empty default is sent as an empty name and nothing rejects it before apply. Ignored when `create_group` is `false`"
+  description = "The name of the group to create. Unused when `create_group` is `false`, where the adopted group keeps the name it already has — pass `\"\"` there, since Terraform requires a value for it regardless"
   type        = string
-  default     = ""
 }
 
 variable "group_id" {

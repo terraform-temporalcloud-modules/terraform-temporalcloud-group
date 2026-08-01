@@ -54,10 +54,14 @@ module "all_inputs" {
 
 # The create flag off: proves the module produces no resources and that every
 # output still evaluates via its try() fallback.
+#
+# `name` has no default because the provider requires it, so it is passed empty
+# rather than omitted. No group is created, so the empty name goes nowhere.
 module "disabled" {
   source = "../../"
 
   create_group = false
+  name         = ""
 }
 
 # Minimum viable call: a group and nothing else.
@@ -72,7 +76,10 @@ module "minimal" {
 module "existing_group" {
   source = "../../"
 
+  # The adopted group keeps its own name, so `name` is empty — passed only
+  # because Terraform requires a value for it.
   create_group = false
+  name         = ""
   group_id     = "group-id-placeholder"
 
   create_group_access = true
