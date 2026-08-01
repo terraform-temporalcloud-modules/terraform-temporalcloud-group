@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0](https://github.com/terraform-temporalcloud-modules/terraform-temporalcloud-group/compare/v1.0.3...v2.0.0) (2026-08-01)
+
+### ⚠ BREAKING CHANGES
+
+* name no longer has a default. A module call that sets
+create_group = false must now pass it explicitly.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+### Features
+
+* Require the inputs the provider requires ([d581970](https://github.com/terraform-temporalcloud-modules/terraform-temporalcloud-group/commit/d581970d88d397c02dceea26d41ab09c2b734a18))
+
 ## [1.0.3](https://github.com/terraform-temporalcloud-modules/terraform-temporalcloud-group/compare/v1.0.2...v1.0.3) (2026-08-01)
 
 ### Documentation
