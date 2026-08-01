@@ -33,6 +33,26 @@ is the fixture the core lifecycle test depends on.
 region entitlements or a namespace quota. Only `namespace_access.tftest.hcl` uses
 it, so such a failure costs that file alone.
 
+## Access the suite needs
+
+`TEMPORAL_CLOUD_API_KEY` is the only credential, supplied to CI as a repository
+secret of that name. Beyond the key existing, the **account behind it** must be
+able to:
+
+| Capability | Needed by | If missing |
+| --- | --- | --- |
+| Create and delete groups, and set a group's account access | every `*.tftest.hcl` except `disabled` | `PermissionDenied` on `CreateUserGroup` — the whole suite fails |
+| Create a namespace in at least one region | `setup-namespace/`, and `orphan-check/` to read the namespaces data source | `namespace_access.tftest.hcl` fails on its fixture; the other files are unaffected, which is why the fixture is separate |
+
+Three inputs need access that **no Temporal Cloud API key can supply**, so they
+are covered by `local/` only and their API behaviour is unverified:
+
+| Input | Access required | Why a key is not enough |
+| --- | --- | --- |
+| `users` / `create_group_members` | A disposable human identity in the account | User IDs belong to real people. Creating one sends a real invitation email, and no test can un-send it. |
+| `group_id` against a SCIM group | A configured SCIM identity provider that has provisioned a group | `temporalcloud_scim_group` resolves only groups that already carry an identity provider ID. An account with no SCIM integration cannot produce one at any permission level. |
+| `account_access_custom_roles` | A custom role ID, which needs an Account Owner key — see [`terraform-temporalcloud-custom-role`](https://github.com/terraform-temporalcloud-modules/terraform-temporalcloud-custom-role) | Custom role administration defaults to the Account Owner, and the shared test key is refused. A role ID that does not exist is rejected, so a placeholder cannot stand in. |
+
 ## What is not covered on apply
 
 **`users` / `create_group_members`.** Membership is set by user ID, and every ID in
