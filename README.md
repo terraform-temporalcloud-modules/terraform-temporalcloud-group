@@ -244,11 +244,11 @@ No modules.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_group_account_access"></a> [group\_account\_access](#output\_group\_account\_access) | The group's role on the account |
-| <a name="output_group_account_access_custom_roles"></a> [group\_account\_access\_custom\_roles](#output\_group\_account\_access\_custom\_roles) | IDs of the custom roles granted to the group at account level |
+| <a name="output_group_account_access_custom_roles"></a> [group\_account\_access\_custom\_roles](#output\_group\_account\_access\_custom\_roles) | IDs of the custom roles granted to the group at account level. Empty when none are granted |
 | <a name="output_group_id"></a> [group\_id](#output\_group\_id) | The unique identifier of the group. Echoes `group_id` when the module manages an existing group rather than creating one |
 | <a name="output_group_members"></a> [group\_members](#output\_group\_members) | IDs of the users that make up the group |
 | <a name="output_group_name"></a> [group\_name](#output\_group\_name) | The name of the group. Empty when the module manages a group it did not create |
-| <a name="output_group_namespace_accesses"></a> [group\_namespace\_accesses](#output\_group\_namespace\_accesses) | The group's complete namespace access map, as a set of `namespace_id` and `permission` pairs |
+| <a name="output_group_namespace_accesses"></a> [group\_namespace\_accesses](#output\_group\_namespace\_accesses) | The group's complete namespace access map, as a set of `namespace_id` and `permission` pairs. Empty when the group has no namespace access |
 | <a name="output_group_state"></a> [group\_state](#output\_group\_state) | The current state of the group. Empty when the module manages a group it did not create |
 <!-- END_TF_DOCS -->
 

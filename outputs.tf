@@ -30,13 +30,17 @@ output "group_account_access" {
 }
 
 output "group_account_access_custom_roles" {
-  description = "IDs of the custom roles granted to the group at account level"
-  value       = try(temporalcloud_group_access.this[0].account_access_custom_roles, [])
+  description = "IDs of the custom roles granted to the group at account level. Empty when none are granted"
+  # coalesce() as well as try(): these attributes are optional in the provider
+  # schema and come back null — not empty — when unset, and try() only catches
+  # errors, so it returns a null unchanged. Without this, length() on the output
+  # fails for any group that has no custom roles.
+  value = try(coalesce(temporalcloud_group_access.this[0].account_access_custom_roles, toset([])), toset([]))
 }
 
 output "group_namespace_accesses" {
-  description = "The group's complete namespace access map, as a set of `namespace_id` and `permission` pairs"
-  value       = try(temporalcloud_group_access.this[0].namespace_accesses, [])
+  description = "The group's complete namespace access map, as a set of `namespace_id` and `permission` pairs. Empty when the group has no namespace access"
+  value       = try(coalesce(temporalcloud_group_access.this[0].namespace_accesses, toset([])), toset([]))
 }
 
 ################################################################################
