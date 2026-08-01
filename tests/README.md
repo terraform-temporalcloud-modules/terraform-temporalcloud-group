@@ -110,7 +110,7 @@ Test resources are prefixed so they are identifiable:
 
 | Prefix | Created by |
 | --- | --- |
-| `yulei-tftest-<random>` | `*.tftest.hcl` — groups, and the namespace in `setup-namespace/` |
+| `yulei-tftest-grp-<random>` | `*.tftest.hcl` — groups, and the namespace in `setup-namespace/` |
 | `yulei-tflocal-*` | `local/`, only if applied by hand — CI never applies it |
 
 Anything matching those prefixes that no live configuration owns can be deleted.

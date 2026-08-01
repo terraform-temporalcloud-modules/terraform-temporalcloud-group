@@ -10,7 +10,7 @@
 # cover groups: the provider exposes no groups data source, and
 # temporalcloud_scim_group resolves only groups an identity provider owns. A
 # leftover group has to be looked for in the Temporal Cloud UI, under the
-# `yulei-tftest-` prefix the suite uses. A clean result here is therefore not
+# `yulei-tftest-grp-` prefix the suite uses. A clean result here is therefore not
 # proof that no group was orphaned.
 #
 # Requires TEMPORAL_CLOUD_API_KEY. Creates nothing — tests/orphan-check contains a
@@ -28,7 +28,7 @@ count="$(terraform output -raw orphan_count)"
 if [ "$count" -eq 0 ]; then
   echo "No leftover test namespaces."
   echo "NOTE: groups are not covered — no data source can enumerate them. Check the"
-  echo "      Temporal Cloud UI for groups named yulei-tftest-*."
+  echo "      Temporal Cloud UI for groups named yulei-tftest-grp-*."
   exit 0
 fi
 
@@ -36,6 +36,6 @@ echo "ERROR: $count test namespace(s) still present after the suite finished:" >
 terraform output -json orphans | sed 's/[][",]/ /g' | tr -s ' ' '\n' | sed '/^$/d;s/^/  - /' >&2
 echo >&2
 echo "These were not destroyed. Delete them in the Temporal Cloud UI, or import and" >&2
-echo "destroy them. Check for leftover yulei-tftest-* groups at the same time: no data" >&2
+echo "destroy them. Check for leftover yulei-tftest-grp-* groups at the same time: no data" >&2
 echo "source can enumerate groups, so this script cannot report them." >&2
 exit 1

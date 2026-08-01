@@ -24,7 +24,7 @@ locals {
 }
 
 resource "temporalcloud_namespace" "this" {
-  name           = "yulei-tftest-${random_pet.this.id}"
+  name           = "yulei-tftest-grp-${random_pet.this.id}"
   regions        = [local.region_ids[0]]
   retention_days = 1
   api_key_auth   = true
